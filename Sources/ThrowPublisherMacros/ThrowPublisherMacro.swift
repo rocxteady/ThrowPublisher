@@ -43,6 +43,10 @@ public struct ThrowPublisherMacro: PeerMacro {
            throw ThrowPublisherError.noThrow
        }
 
+       let modifiers = functionDecl.modifiers.map {
+           $0.name.text
+       }.joined(separator: " ")
+
        let returnType: String
        if let name = functionDecl.signature.returnClause?.type.as(IdentifierTypeSyntax.self)?.name {
            returnType = name.text
@@ -101,8 +105,12 @@ public struct ThrowPublisherMacro: PeerMacro {
            returnPart += " \(genericPart)"
        }
 
+       var startOfFunction = "func"
+       if !modifiers.isEmpty {
+           startOfFunction = "\(modifiers) \(startOfFunction)"
+       }
        let hop = """
-       func \(newFunctionName)\(parameters)-> \(returnPart) {
+       \(startOfFunction) \(newFunctionName)\(parameters)-> \(returnPart) {
            func getResult() -> Result<\(returnType), Error> {
                do {
                    \(resultString)

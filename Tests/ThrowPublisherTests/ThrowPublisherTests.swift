@@ -222,7 +222,6 @@ final class ThrowPublisherTests: XCTestCase {
         #endif
     }
 
-
     func testMacroWithWhere() throws {
         #if canImport(ThrowPublisherMacros)
         assertMacroExpansion(
@@ -241,6 +240,41 @@ final class ThrowPublisherTests: XCTestCase {
                 func getResult() -> Result<String, Error> {
                     do {
                         let result = try someFunc(arg1: arg1)
+                        return .success(result)
+                    } catch {
+                        return .failure(error)
+                    }
+                }
+                return getResult()
+                .publisher
+                .eraseToAnyPublisher()
+            }
+            """,
+            macros: testMacros
+        )
+        #else
+        throw XCTSkip("macros are only supported when running tests for the host platform")
+        #endif
+    }
+
+    func testMacroWithStatic() throws {
+        #if canImport(ThrowPublisherMacros)
+        assertMacroExpansion(
+            """
+            @ThrowPublisher
+            static func someFunc(arg1: String, arg2: Int) throws -> String {
+                "something"
+            }
+            """,
+            expandedSource: """
+            static func someFunc(arg1: String, arg2: Int) throws -> String {
+                "something"
+            }
+
+            static func someFunc_publisher(arg1: String, arg2: Int) -> AnyPublisher<String, Error> {
+                func getResult() -> Result<String, Error> {
+                    do {
+                        let result = try someFunc(arg1: arg1, arg2: arg2)
                         return .success(result)
                     } catch {
                         return .failure(error)
