@@ -10,7 +10,6 @@ enum ThrowPublisherError: Error, CustomStringConvertible {
     case identifierType
     case asyncSpecifier
     case noThrow
-    case unsupportedWhereClause
 
     var description: String {
         switch self {
@@ -22,8 +21,6 @@ enum ThrowPublisherError: Error, CustomStringConvertible {
             return "Could not get the name of wildcard(_) parameter."
         case .asyncSpecifier:
             return "ThrowPublisher doesn't support async specifier."
-        case .unsupportedWhereClause:
-            return "Unsupported where clause."
         case .noThrow:
             return "Function doesn't throw."
         }
@@ -61,21 +58,12 @@ public struct ThrowPublisherMacro: PeerMacro {
        var newFunctionName = "\(functionName)_publisher"
 
        if let genericParameterClause = functionDecl.genericParameterClause {
-           let generics = genericParameterClause.parameters.map {
-               $0.name.text
-           }.joined(separator: ", ")
-           newFunctionName += "<\(generics)>"
+           newFunctionName += "\(genericParameterClause)"
        }
 
        var genericPart: String?
        if let genericWhereClause = functionDecl.genericWhereClause {
-           let generics = try genericWhereClause.requirements.map {
-               guard let conformanceRequirementSyntax = $0.requirement.as(ConformanceRequirementSyntax.self),
-                     let leftType = conformanceRequirementSyntax.leftType.as(IdentifierTypeSyntax.self),
-                     let rightType = conformanceRequirementSyntax.rightType.as(IdentifierTypeSyntax.self)else { throw ThrowPublisherError.unsupportedWhereClause }
-               return "\(leftType.name.text)\(conformanceRequirementSyntax.colon.text) \(rightType.name.text)"
-           }.joined(separator: ", ")
-           genericPart = "where \(generics)"
+           genericPart = "where \(genericWhereClause.requirements)"
        }
 
        let parameters = "\(functionDecl.signature.parameterClause)"
@@ -110,7 +98,7 @@ public struct ThrowPublisherMacro: PeerMacro {
            startOfFunction = "\(modifiers) \(startOfFunction)"
        }
        let hop = """
-       \(startOfFunction) \(newFunctionName)\(parameters)-> \(returnPart) {
+       \(startOfFunction) \(newFunctionName)\(parameters)-> \(returnPart){
            func getResult() -> Result<\(returnType), Error> {
                do {
                    \(resultString)

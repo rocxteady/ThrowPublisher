@@ -31,7 +31,14 @@ struct MyStruct {
     }
 
     @ThrowPublisher
-    func doSomething<T>(arg: T) throws -> String where T: Equatable {
+    func doSomething<T, P>(arg: T, arg2: P) throws -> String where T: Equatable {
+        "Something"
+    }
+}
+
+extension Array {
+    @ThrowPublisher
+    func doSomething(arg: String) throws -> String where Self.Element == Int {
         "Something"
     }
 }

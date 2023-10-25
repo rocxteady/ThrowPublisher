@@ -157,19 +157,19 @@ final class ThrowPublisherTests: XCTestCase {
         assertMacroExpansion(
             """
             @ThrowPublisher
-            func someFunc<T>(arg1: T) throws -> String {
+            func someFunc<T, P>(arg1: T, arg2: P) throws -> String {
                 "something"
             }
             """,
             expandedSource: """
-            func someFunc<T>(arg1: T) throws -> String {
+            func someFunc<T, P>(arg1: T, arg2: P) throws -> String {
                 "something"
             }
 
-            func someFunc_publisher<T>(arg1: T) -> AnyPublisher<String, Error> {
+            func someFunc_publisher<T, P>(arg1: T, arg2: P) -> AnyPublisher<String, Error> {
                 func getResult() -> Result<String, Error> {
                     do {
-                        let result = try someFunc(arg1: arg1)
+                        let result = try someFunc(arg1: arg1, arg2: arg2)
                         return .success(result)
                     } catch {
                         return .failure(error)
@@ -227,16 +227,16 @@ final class ThrowPublisherTests: XCTestCase {
         assertMacroExpansion(
             """
             @ThrowPublisher
-            func someFunc<T>(arg1: T) throws -> String where T: Equatable {
+            func someFunc<T>(arg1: T) throws -> String where T: Equatable, Self.Element == Int {
                 "something"
             }
             """,
             expandedSource: """
-            func someFunc<T>(arg1: T) throws -> String where T: Equatable {
+            func someFunc<T>(arg1: T) throws -> String where T: Equatable, Self.Element == Int {
                 "something"
             }
 
-            func someFunc_publisher<T>(arg1: T) -> AnyPublisher<String, Error> where T: Equatable {
+            func someFunc_publisher<T>(arg1: T) -> AnyPublisher<String, Error> where T: Equatable, Self.Element == Int {
                 func getResult() -> Result<String, Error> {
                     do {
                         let result = try someFunc(arg1: arg1)
