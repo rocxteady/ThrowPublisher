@@ -1,4 +1,6 @@
 # ThrowPublisher
+[![Swift](https://github.com/rocxteady/ThrowPublisher/actions/workflows/swift.yml/badge.svg)](https://github.com/rocxteady/ThrowPublisher/actions/workflows/swift.yml)
+
 Swift Macro that automatically generates AnyPublisher for the functions that throw.
 
 ## Installation
