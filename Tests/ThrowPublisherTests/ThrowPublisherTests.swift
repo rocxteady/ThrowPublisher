@@ -292,24 +292,6 @@ final class ThrowPublisherTests: XCTestCase {
         #endif
     }
 
-    func testMacroWithNotFunction() throws {
-        #if canImport(ThrowPublisherMacros)
-        assertMacroExpansion(
-            """
-            @ThrowPublisher
-            var someVariable: String
-            """,
-            expandedSource: """
-            var someVariable: String
-            """,
-            diagnostics: [.init(message: "Declaration must be function.", line: 1, column: 1)],
-            macros: testMacros
-        )
-        #else
-        throw XCTSkip("macros are only supported when running tests for the host platform")
-        #endif
-    }
-
     func testMacroWithAsync() throws {
         #if canImport(ThrowPublisherMacros)
         assertMacroExpansion(
@@ -347,6 +329,162 @@ final class ThrowPublisherTests: XCTestCase {
             }
             """,
             diagnostics: [.init(message: "Function doesn't throw.", line: 1, column: 1)],
+            macros: testMacros
+        )
+        #else
+        throw XCTSkip("macros are only supported when running tests for the host platform")
+        #endif
+    }
+
+    func testMacroVariable() throws {
+        #if canImport(ThrowPublisherMacros)
+        assertMacroExpansion(
+            """
+            @ThrowPublisher
+            var someVariable: String {
+                get throws {
+                    "Something"
+                }
+            }
+            """,
+            expandedSource: """
+            var someVariable: String {
+                get throws {
+                    "Something"
+                }
+            }
+
+            var someVariable_publisher: AnyPublisher<String, Error> {
+                func getResult() -> Result<String, Error> {
+                    do {
+                        let result = try someVariable
+                        return .success(result)
+                    } catch {
+                        return .failure(error)
+                    }
+                }
+                return getResult()
+                .publisher
+                .eraseToAnyPublisher()
+            }
+            """,
+            macros: testMacros
+        )
+        #else
+        throw XCTSkip("macros are only supported when running tests for the host platform")
+        #endif
+    }
+
+    func testMacroVariableWithOptional() throws {
+        #if canImport(ThrowPublisherMacros)
+        assertMacroExpansion(
+            """
+            @ThrowPublisher
+            var someVariable: String? {
+                get throws {
+                    "Something"
+                }
+            }
+            """,
+            expandedSource: """
+            var someVariable: String? {
+                get throws {
+                    "Something"
+                }
+            }
+
+            var someVariable_publisher: AnyPublisher<String?, Error> {
+                func getResult() -> Result<String?, Error> {
+                    do {
+                        let result = try someVariable
+                        return .success(result)
+                    } catch {
+                        return .failure(error)
+                    }
+                }
+                return getResult()
+                .publisher
+                .eraseToAnyPublisher()
+            }
+            """,
+            macros: testMacros
+        )
+        #else
+        throw XCTSkip("macros are only supported when running tests for the host platform")
+        #endif
+    }
+
+    func testMacroVariableWithVoid() throws {
+        #if canImport(ThrowPublisherMacros)
+        assertMacroExpansion(
+            """
+            @ThrowPublisher
+            var someVariable: Void {
+                get throws {
+                    "Something"
+                }
+            }
+            """,
+            expandedSource: """
+            var someVariable: Void {
+                get throws {
+                    "Something"
+                }
+            }
+
+            var someVariable_publisher: AnyPublisher<Void, Error> {
+                func getResult() -> Result<Void, Error> {
+                    do {
+                        try someVariable
+                        return .success(())
+                    } catch {
+                        return .failure(error)
+                    }
+                }
+                return getResult()
+                .publisher
+                .eraseToAnyPublisher()
+            }
+            """,
+            macros: testMacros
+        )
+        #else
+        throw XCTSkip("macros are only supported when running tests for the host platform")
+        #endif
+    }
+
+    func testMacroVariableWithStatic() throws {
+        #if canImport(ThrowPublisherMacros)
+        assertMacroExpansion(
+            """
+            @ThrowPublisher
+            static var someVariable: String {
+                get throws {
+                    "Something"
+                }
+            }
+            """,
+            expandedSource: """
+            static var someVariable: String {
+                get throws {
+                    "Something"
+                }
+            }
+
+            static var someVariable_publisher: AnyPublisher<String, Error> {
+                func getResult() -> Result<String, Error> {
+                    do {
+                        let result = try someVariable
+                        return .success(result)
+                    } catch {
+                        return .failure(error)
+                    }
+                }
+                return getResult()
+                .publisher
+                .eraseToAnyPublisher()
+            }
+            """,
             macros: testMacros
         )
         #else
